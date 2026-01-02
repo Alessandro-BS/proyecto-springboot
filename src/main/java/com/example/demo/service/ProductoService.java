@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Categoria;
 import com.example.demo.model.Producto;
 import com.example.demo.repository.ProductoRepository;
@@ -41,7 +42,8 @@ public class ProductoService {
     // Método para buscar un producto por su ID.
     public Producto buscarPorId(Long id) {
         return productoRepo.findById(id) // Busca por Clave Primaria.
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado")); // Lanza error si no existe.
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado")); // Lanza error si no
+                                                                                             // existe.
     }
 
     // Método para eliminar un producto por su ID.

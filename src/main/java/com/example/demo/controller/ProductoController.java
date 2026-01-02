@@ -31,6 +31,11 @@ public class ProductoController {
         return service.listar(); // Obtiene todos los productos de la base de datos.
     }
 
+    @GetMapping("/{id}") // Mapea la petición GET.
+    public Producto buscarPorId(@PathVariable Long id) {
+        return service.buscarPorId(id); // Obtiene el producto por su ID.
+    }
+
     @DeleteMapping("/{id}") // Mapea la petición DELETE.
     public void eliminar(@PathVariable Long id) {
         service.eliminar(id); // Elimina el producto por su ID.
