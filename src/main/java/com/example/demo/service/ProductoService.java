@@ -5,7 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.ProductoRequestDTO;
+import com.example.demo.dto.ProductoResponseDTO;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.mapper.ProductoMapper;
 import com.example.demo.model.Categoria;
 import com.example.demo.model.Producto;
 import com.example.demo.repository.ProductoRepository;
@@ -19,31 +22,37 @@ public class ProductoService {
     @Autowired // Inyecta el servicio de Categoria.
     private CategoriaService categoriaService; // Permite usar la lógica de negocio de categorías (Buscar).
 
+    @Autowired
+    private ProductoMapper productoMapper;
+
     // Método para crear un producto.
-    public Producto crear(Producto producto) {
-        // Obtenemos el ID de la categoría que viene en el JSON de la petición.
-        Long categoriaId = producto.getCategoria().getId();
+    public ProductoResponseDTO crear(ProductoRequestDTO dto) {
 
-        // Buscamos la categoría completa en la BD usando el servicio de categorías.
-        // Si no existe, el servicio lanzará una excepción y se detendrá el proceso
-        // aquí.
-        Categoria categoria = categoriaService.buscarPorId(categoriaId);
+        Categoria categoria = categoriaService.buscarPorId(dto.getCategoriaId()); // Busca la categoría por su ID.
 
-        // Asignamos la categoría encontrada al producto para asegurar que sea válida.
-        producto.setCategoria(categoria);
-        return productoRepo.save(producto);
+        Producto producto = productoMapper.toEntity(dto, categoria); // Convierte el ProductoRequestDTO a un Producto.
+
+        Producto productoGuardado = productoRepo.save(producto); // Guarda el Producto en la base de datos.
+
+        return productoMapper.toResponseDTO(productoGuardado); // Convierte el Producto a un ProductoResponseDTO.
     }
 
     // Método para listar todos los productos.
-    public List<Producto> listar() {
-        return productoRepo.findAll(); // Devuelve la lista completa de productos.
+    public List<ProductoResponseDTO> listar() {
+        return productoRepo.findAll() // Busca todos los productos.
+                .stream() // Convierte la lista de productos en un Stream.
+                .map(productoMapper::toResponseDTO) // Convierte cada Producto a ProductoResponseDTO.
+                .toList(); // Convierte el Stream en una lista.
     }
 
     // Método para buscar un producto por su ID.
-    public Producto buscarPorId(Long id) {
-        return productoRepo.findById(id) // Busca por Clave Primaria.
-                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado")); // Lanza error si no
-                                                                                             // existe.
+    public ProductoResponseDTO buscarPorId(Long id) {
+        Producto producto = productoRepo.findById(id) // Busca el producto por su ID.
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado")); // Lanza una excepción si
+                                                                                             // el producto no se
+                                                                                             // encuentra.
+
+        return productoMapper.toResponseDTO(producto); // Convierte el Producto a un ProductoResponseDTO.
     }
 
     // Método para eliminar un producto por su ID.
